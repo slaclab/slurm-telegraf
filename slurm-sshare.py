@@ -51,7 +51,7 @@ for line in sys.stdin:
 
   if '/'.join(assoc_tree_path) != 'root':
 
-    leaf=f',user={user}' if not len(user) == 0 else ''
+    leaf=f',user={user}' if not len(user) == 0 else ',user=ALL'
     values = []
     if fairshare:
       values.append( f'fairshare={fairshare}' )
