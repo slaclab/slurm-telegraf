@@ -32,7 +32,7 @@ for line in sys.stdin:
         fields.append( f"{k.lower()}={v.lower()}" )
 
     gres = match.group("gres")
-    base_path=f"sinfo partition={partition},mem={match.group('mem')},cpu={match.group('cpu')},{','.join(fields)}"
+    base_path=f"sinfo,partition={partition},mem={match.group('mem')},cpu={match.group('cpu')}{',' if len(fields) else ''}{','.join(fields)}"
 
     state = match.group("state")
     nodecnt = int(match.group("nodecnt"))
