@@ -106,4 +106,4 @@ for line in sys.stdin:
 # print summary
 for s in totals.keys():
   values = [ f"{k}={v}i" for k,v in totals[s].items() ]
-  print( f"sinfo-node,state={s} {','.join( values )}" )
+  print( f"sinfo-state,state={s} {','.join( values )}" )
