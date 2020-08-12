@@ -15,6 +15,7 @@ for line in sys.stdin:
   try:
     out = line.strip().split()
 
+    this['jobid'] = out.pop(0)
     this['state'] = out.pop(0)
     this['user'] = out.pop(0)
     this['partition'] = out.pop(0)
@@ -59,18 +60,24 @@ for line in sys.stdin:
     if not key in running:
       running[key] = { 'jobs':0, 'cpu':0, 'gpu':0, 'mem':0, 'tasks':0, 'billing':0}
     running[key]['jobs'] += 1
+    values = []
     for k in ( 'cpu', 'gpu', 'billing', 'mem', 'tasks' ):
       if k in this:
         running[key][k] += int(this[k])
+        values.append( f"{k}={this[k]}i" )
+    print( f"squeue-running,jobid={this['jobid']},user={this['user']},partition={this['partition']},account={this['account']},qos={this['qos']} {','.join(values)}" )
 
   else:
     key = (this['state'], this['reason'], this['user'], this['partition'], this['account'], this['qos'])
     if not key in other:
       other[key] = { 'jobs':0, 'cpu':0, 'gpu':0, 'mem':0, 'tasks':0, 'billing':0 }
     other[key]['jobs'] += 1
+    values = []
     for k in ( 'cpu', 'gpu', 'billing', 'mem', 'tasks' ):
       if k in this:
         other[key][k] += int(this[k])
+        values.append( f"{k}={this[k]}i" )
+    print( f"squeue-pending,jobid={this['jobid']},reason={this['reason']},user={this['user']},partition={this['partition']},account={this['account']},qos={this['qos']} {','.join(values)}")
 
 
 for (state, user, partition, account, qos), data in running.items():
