@@ -124,5 +124,5 @@ for line in sys.stdin:
 
 for section in data.keys():
   values = [ f"{k}={data[section][k]}" for k in data[section].keys() ]
-  print( f"sdiag section={section} {','.join(values)}" )
+  print( f"sdiag,section={section} {','.join(values)}" )
 

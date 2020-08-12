@@ -75,9 +75,9 @@ for line in sys.stdin:
 
 for (state, user, partition, account, qos), data in running.items():
     values = [ f"{k}={data[k]}i" for k in data.keys() ]
-    print( f"squeue user={user},partition={partition},account={account},qos={qos},state={state} {','.join(values)}" )
+    print( f"squeue,user={user},partition={partition},account={account},qos={qos},state={state} {','.join(values)}" )
 
 for (state, reason, user, partition, account, qos), data in other.items():
     values = [ f"{k}={data[k]}i" for k in data.keys() ]
-    print( f"squeue user={user},partition={partition},account={account},qos={qos},state={state},reason={reason} {','.join(values)}" )
+    print( f"squeue,user={user},partition={partition},account={account},qos={qos},state={state},reason={reason} {','.join(values)}" )
 
