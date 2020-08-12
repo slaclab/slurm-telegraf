@@ -28,6 +28,7 @@ def parse_gres( gres ):
     yield f, total
       
   
+totals = {}
 
 for line in sys.stdin:
  
@@ -70,20 +71,39 @@ for line in sys.stdin:
 
   #logging.error(f"=> {this}")
 
+  if not this['state'] in totals:
+    totals[this['state']] = { 'count': 0 }
+  totals[this['state']]['count'] += 1
+
   values = []
   for i in ( 'cpu_allocated', 'cpu_idle', 'cpu_other', 'cpu_total', 'mem_allocated', 'mem_free', 'disk', 'weight' ):
     if this[i] == 'N/A':
       continue
     values.append(f'{i}={this[i]}i')
+    # add tallies
+    if not i in totals[this['state']]:
+      totals[this['state']][i] = 0
+    totals[this['state']][i] += int(this[i])
+
   values.append( f"state=\"{this['state']}\"" )
   if this['cpu_load'] != 'N/A':
     values.append( f"cpu_load={this['cpu_load']}" )
 
   if 'gpu_total' in this:
-    values.append( f"gpu_total={this['gpu_total']}i" )
-    values.append( f"gpu_allocated={this['gpu_allocated']}i" )
-    values.append( f"gpu_idle={this['gpu_total']-this['gpu_allocated']}i" )
+    for i in ( 'gpu_total', 'gpu_allocated' ):
+      values.append( f"{i}={this[i]}i" )
+      if not i in totals[this['state']]:
+        totals[this['state']][i] = 0
+      totals[this['state']][i] += int(this[i])
+    idle = int(this['gpu_total']) - int(this['gpu_allocated'])
+    values.append( f"gpu_idle={idle}i" )
+    if not 'gpu_idle' in totals[this['state']]:
+      totals[this['state']]['gpu_idle'] = 0
+    totals[this['state']]['gpu_idle'] += idle
 
   print( f"sinfo-node,{','.join(fields)} {','.join(values)}" )
 
-
+# print summary
+for s in totals.keys():
+  values = [ f"{k}={v}i" for k,v in totals[s].items() ]
+  print( f"sinfo-node,state={s} {','.join( values )}" )
