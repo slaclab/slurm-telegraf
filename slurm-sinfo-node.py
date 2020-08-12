@@ -55,9 +55,11 @@ for line in sys.stdin:
   this['disk'] = item.pop(0)
 
   this['weight'] = item.pop(0)
-  for i in item.pop(0).split(','):
-    k, v = i.split(':')
-    fields.append( f"{k.lower()}={v.lower()}" )
+  features = item.pop(0)
+  if ',' in features:
+    for i in features.split(','):
+      k, v = i.split(':')
+      fields.append( f"{k.lower()}={v.lower()}" )
 
   for gres, number in parse_gres( item.pop(0) ):
     this[gres + '_total'] = number

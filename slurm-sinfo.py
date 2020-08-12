@@ -26,9 +26,10 @@ for line in sys.stdin:
     partitions.add(partition)
     features = match.group("features") #.translate(transtable, '*')
     fields = []
-    for i in features.split(','):
-      k, v = i.split(':')
-      fields.append( f"{k.lower()}={v.lower()}" )
+    if ',' in features:
+      for i in features.split(','):
+        k, v = i.split(':')
+        fields.append( f"{k.lower()}={v.lower()}" )
 
     gres = match.group("gres")
     base_path=f"sinfo partition={partition},mem={match.group('mem')},cpu={match.group('cpu')},{','.join(fields)}"
