@@ -70,9 +70,14 @@ for line in sys.stdin:
 
   #logging.error(f"=> {this}")
 
-  values = [ f'{i}={this[i]}i' for i in ( 'cpu_allocated', 'cpu_idle', 'cpu_other', 'cpu_total', 'mem_allocated', 'mem_free', 'disk', 'weight' ) ]
+  values = []
+  for i in ( 'cpu_allocated', 'cpu_idle', 'cpu_other', 'cpu_total', 'mem_allocated', 'mem_free', 'disk', 'weight' ):
+    if this[i] == 'N/A':
+      continue
+    values.append(f'{i}={this[i]}i')
   values.append( f"state={this['state']}" )
-  values.append( f"cpu_load={this['cpu_load']}" )
+  if this['cpu_load'] != 'N/A':
+    values.append( f"cpu_load={this['cpu_load']}" )
 
   if 'gpu_total' in this:
     values.append( f"gpu_total={this['gpu_total']}i" )
