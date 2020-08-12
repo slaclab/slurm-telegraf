@@ -75,7 +75,7 @@ for line in sys.stdin:
     if this[i] == 'N/A':
       continue
     values.append(f'{i}={this[i]}i')
-  values.append( f"state={this['state']}" )
+  values.append( f"state=\"{this['state']}\"" )
   if this['cpu_load'] != 'N/A':
     values.append( f"cpu_load={this['cpu_load']}" )
 
@@ -84,6 +84,6 @@ for line in sys.stdin:
     values.append( f"gpu_allocated={this['gpu_allocated']}i" )
     values.append( f"gpu_idle={this['gpu_total']-this['gpu_allocated']}i" )
 
-  print( f"sinfo-node {','.join(fields)} {','.join(values)}" )
+  print( f"sinfo-node,{','.join(fields)} {','.join(values)}" )
 
 
