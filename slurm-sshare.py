@@ -52,5 +52,10 @@ for line in sys.stdin:
   if '/'.join(assoc_tree_path) != 'root':
 
     leaf=f',user={user}' if not len(user) == 0 else ''
-    fairshare_value=f',fairshare={fairshare}' if fairshare else ''
-    print( f"sshare tree_path={'/'.join(assoc_tree_path)}{leaf} share={level_fs}{fairshare_value}" )
+    values = []
+    if fairshare:
+      values.append( f'fairshare={fairshare}' )
+    if str(level_fs) != 'inf':
+      values.append( f'share={level_fs}' )
+    if len( values ):
+      print( f"sshare,treepath={'/'.join(assoc_tree_path)}{leaf} {','.join(values)}" )
