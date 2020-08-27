@@ -16,10 +16,13 @@ def parse_gres( gres ):
         a,b = i.split('(')
       else:
         a = i
-      form, model, num = a.split(':')
-      if not form in greses:
-        greses[form] = {}
-      greses[form][model] = num
+      try:
+        form, model, num = a.split(':')
+        if not form in greses:
+          greses[form] = {}
+        greses[form][model] = num
+      except:
+        pass
 
   for f in greses.keys():
     total = 0
