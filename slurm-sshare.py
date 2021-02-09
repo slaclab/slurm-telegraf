@@ -56,6 +56,8 @@ for line in sys.stdin:
     if fairshare:
       values.append( f'fairshare={fairshare}' )
     if str(level_fs) != 'inf':
-      values.append( f'share={level_fs}' )
+      #print( f"LEVEL_FS: {level_fs}", file=sys.stderr )
+      if not str(level_fs) == 'nan':
+        values.append( f'share={level_fs}' )
     if len( values ):
       print( f"sshare,treepath={'/'.join(assoc_tree_path)}{leaf} {','.join(values)}" )
