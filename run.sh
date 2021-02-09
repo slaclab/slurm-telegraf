@@ -1,5 +1,7 @@
 #!/bin/sh
 
+export PATH=$PATH:/opt/slurm/bin
+
 DIR=$( dirname "${BASH_SOURCE[0]}" )
 squeue -rh -O jobid,state,username,Partition,Account,Qos,NumTasks,tres-alloc:70,Reason:70 | python3 ${DIR}/slurm-squeue.py
 sdiag | python3 ${DIR}/slurm-sdiag.py
