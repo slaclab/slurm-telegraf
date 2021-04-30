@@ -26,7 +26,7 @@ for line in sys.stdin:
  
     tres = out.pop(0)
 
-    this['reason'] = str(' '.join(out))
+    this['reason'] = str(' '.join(out)).replace(' ','\ ')
 
     if ', ' in this['reason']:
       this['reason'] = this['reason'].split(',').pop(0)
