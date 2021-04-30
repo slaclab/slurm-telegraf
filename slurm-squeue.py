@@ -65,7 +65,8 @@ for line in sys.stdin:
       if k in this:
         running[key][k] += int(this[k])
         values.append( f"{k}={this[k]}i" )
-    print( f"squeue-running,jobid={this['jobid']},user={this['user']},partition={this['partition']},account={this['account']},qos={this['qos']} {','.join(values)}" )
+    # TODO: too many unique tags
+    #print( f"squeue-running,jobid={this['jobid']},user={this['user']},partition={this['partition']},account={this['account']},qos={this['qos']} {','.join(values)}" )
 
   else:
     key = (this['state'], this['reason'], this['user'], this['partition'], this['account'], this['qos'])
@@ -77,7 +78,8 @@ for line in sys.stdin:
       if k in this:
         other[key][k] += int(this[k])
         values.append( f"{k}={this[k]}i" )
-    print( f"squeue-pending,jobid={this['jobid']},reason={this['reason']},user={this['user']},partition={this['partition']},account={this['account']},qos={this['qos']} {','.join(values)}")
+    # TODO: too many unique tags
+    # print( f"squeue-pending,jobid={this['jobid']},reason={this['reason'].replace(' ', '_')},user={this['user']},partition={this['partition']},account={this['account']},qos={this['qos']} {','.join(values)}")
 
 
 for (state, user, partition, account, qos), data in running.items():
@@ -86,5 +88,5 @@ for (state, user, partition, account, qos), data in running.items():
 
 for (state, reason, user, partition, account, qos), data in other.items():
     values = [ f"{k}={data[k]}i" for k in data.keys() ]
-    print( f"squeue,user={user},partition={partition},account={account},qos={qos},state={state},reason={reason} {','.join(values)}" )
+    print( f"squeue,user={user},partition={partition},account={account},qos={qos},state={state},reason={reason.replace(' ', '_')} {','.join(values)}" )
 
