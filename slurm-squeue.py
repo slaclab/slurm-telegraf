@@ -30,6 +30,8 @@ for line in sys.stdin:
 
     if ', ' in this['reason']:
       this['reason'] = this['reason'].split(',').pop(0)
+    if 'UnavailableNodes:' in this['reason']:
+      this['reason'] = this['reason'].split( 'UnavailableNodes:' )[0]
 
     for i in tres.split(','):
       k, v = i.split('=')
