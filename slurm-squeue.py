@@ -28,7 +28,7 @@ for line in sys.stdin:
 
     this['reason'] = str(' '.join(out)).replace(' ','\ ')
 
-    if ', ' in this['reason']:
+    if ', ' in this['reason'] or ',\ ' in this['reason']:
       this['reason'] = this['reason'].split(',').pop(0)
     if 'UnavailableNodes:' in this['reason']:
       this['reason'] = this['reason'].split( 'UnavailableNodes:' )[0]
@@ -90,5 +90,6 @@ for (state, user, partition, account, qos), data in running.items():
 
 for (state, reason, user, partition, account, qos), data in other.items():
     values = [ f"{k}={data[k]}i" for k in data.keys() ]
-    print( f"squeue,user={user},partition={partition},account={account},qos={qos},state={state},reason={reason.replace(' ', '_')} {','.join(values)}" )
+    this_reason = reason.replace('\ ', '')
+    print( f"squeue,user={user},partition={partition},account={account},qos={qos},state={state},reason={this_reason} {','.join(values)}" )
 
