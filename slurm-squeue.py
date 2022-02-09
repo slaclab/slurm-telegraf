@@ -43,7 +43,9 @@ for line in sys.stdin:
     if 'mem' in this:
       multi = 1
       unit = this['mem'][-1]
-      if unit == 'G':
+      if unit == 'T':
+        multi = 1024 * 1024
+      elif unit == 'G':
         multi = 1024
       elif unit == 'M': #if this['mem'][-1] == 'M'
         multi = 1
