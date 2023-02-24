@@ -18,7 +18,7 @@ for line in sys.stdin:
     this['jobid'] = out.pop(0)
     this['state'] = out.pop(0)
     this['user'] = out.pop(0)
-    this['partition'] = out.pop(0)
+    this['partition'] = out.pop(0).replace(',', '_').replace('\ ', '')
     this['account'] = out.pop(0)
     this['qos'] = out.pop(0)
 
