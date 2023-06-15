@@ -85,7 +85,6 @@ def main():
         parser.add_argument("-tRunning", help="Amount of minutes running", type=int, default=1440)
         parser.add_argument("-tPending", help="Amount of minutes pending", type=int, default=30)
         args = parser.parse_args()
-        print(args.tRunning,args.tPending)
         timestamp=int(time.time())
 
         # Execute squeue
