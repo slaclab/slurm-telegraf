@@ -78,6 +78,31 @@ def get_working_nodes(string_node):
             nodes.append(f"{prefix}{int(node):03}")
     return nodes
 
+def influxDBLineProtocol(measurement_name,input_dict):
+    """
+    Function to return the proper format for influxDB line protocol according to:
+    https://docs.influxdata.com/influxdb/v2.7/reference/syntax/line-protocol.
+    Input dict is as follows.
+    {
+        tagvalue1:val1, fieldvalue1:val1, ..., othervalue:valuex ...
+        idb_tags:[tagvalue1, tagvalue2, ...],
+        idb_field:[fieldvalue1, fieldvalue2, ...]
+    }
+    Empty keys values from input dictionary will be treated as None.
+    If the input_dict does not contains pair of keys and values in the list of
+    tags, the tag will have a value of "(null)"
+    If the input_dict does not contains pair of keys and values in the list of
+    fields, the field will have a value of 0
+    """
+
+    input_dict = {key: None if value == '' else value for key, value in input_dict.items()}
+    formatted_tags = [f"{key}={value}" if value is not None else f"{key}=\"\"" for key, value in input_dict.items() if key in input_dict['idb_tags']]
+    formatted_fields = [f"{key}={value}u" if value is not None else f"{key}=0" for key, value in input_dict.items() if key in input_dict['idb_fields']]
+
+    formatted_output =','.join([measurement_name] + [','.join(formatted_tags)])
+    formatted_output = formatted_output+' '+' '.join(formatted_fields)+' '+str(input_dict['timestamp'])
+
+    return formatted_output
 
 def main():
     try:
@@ -85,7 +110,7 @@ def main():
         parser.add_argument("-tRunning", help="Amount of minutes running", type=int, default=1440)
         parser.add_argument("-tPending", help="Amount of minutes pending", type=int, default=30)
         args = parser.parse_args()
-        timestamp=int(time.time())
+        timestamp=int(time.time()*1e9)
 
         # Execute squeue
         squeue = 'squeue --json'
@@ -108,12 +133,11 @@ def main():
                     "user_name"]
         idb_tags = ["account", "job_state", "partition", "priority", "qos",
                     "user_name","facility","repo","long_pending","long_running",
-                    "multi_partition","multi_host", "node","cpus","memory_per_cpu"]
-        idb_fields = ["job_id","cpus","task","memory","cores"]
+                    "multi_partition","multi_host", "node"]
+        idb_fields = ["job_id","cpus","task","memory","cores","memory_per_cpu"]
 
         for jobs in json_squeue['jobs']:
             sub_dict = {key: jobs[key] for key in attributes2check if key in jobs}
-            sub_dict['job_id'] = str(sub_dict['job_id'])
             sub_dict['timestamp'] =  timestamp
             sub_dict['idb_tags'] = idb_tags
             sub_dict['idb_fields'] = idb_fields
@@ -127,7 +151,7 @@ def main():
             else:
                 sub_dict['facility'] = None
                 sub_dict['repo'] = None
-            if sub_dict['job_state'] == "PENDING" and ((timestamp - sub_dict['submit_time']) > args.tPending*60): #1800 Seconds
+            if sub_dict['job_state'] == "PENDING" and ((timestamp - sub_dict['submit_time']) > args.tPending*60):
                 sub_dict['time_pending'] = timestamp - sub_dict['submit_time']
                 sub_dict['long_pending'] = True
             else:
@@ -158,14 +182,14 @@ def main():
                             sub_dict['cores']=sub_dict['job_resources']['allocated_nodes'][nodenumber]['cpus']
                             dict_influxdb=copy.deepcopy(sub_dict)
                             del dict_influxdb['job_resources']
-                            formatted_dict = ', '.join(f"'{key}'={value}" for key, value in dict_influxdb.items())
-                            print("squeue_json,",formatted_dict)
+                            output_formatted=influxDBLineProtocol("squeue_json",dict_influxdb)
+                            print(output_formatted)
                     else:
                         dict_influxdb=copy.deepcopy(sub_dict)
                         del dict_influxdb['job_resources']
-                        formatted_dict = ', '.join(f"'{key}'={value}" for key, value in dict_influxdb.items())
-                        print("squeue_json,",formatted_dict)
-                        #continue
+                        output_formatted=influxDBLineProtocol("squeue_json",dict_influxdb)
+                        print(output_formatted)
+
             else:
                 sub_dict['multi_partition'] = False
                 if len(sub_dict['job_resources'])!=0:
@@ -181,8 +205,8 @@ def main():
                             sub_dict['cores']=sub_dict['job_resources']['allocated_nodes'][nodenumber]['cpus']
                             dict_influxdb=copy.deepcopy(sub_dict)
                             del dict_influxdb['job_resources']
-                            formatted_dict = ', '.join(f"'{key}'={value}" for key, value in dict_influxdb.items())
-                            print("squeue_json,",formatted_dict)
+                            output_formatted=influxDBLineProtocol("squeue_json",dict_influxdb)
+                            print(output_formatted)
     except Exception:
         traceback.print_exc()
 
