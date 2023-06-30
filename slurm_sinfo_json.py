@@ -26,17 +26,19 @@ def influxDBLineProtocol(measurement_name,input_dict):
         idb_tags:[tagvalue1, tagvalue2, ...],
         idb_field:[fieldvalue1, fieldvalue2, ...]
     }
+    Empty keys values from input dictionary will be treated as None.
     If the input_dict does not contains pair of keys and values in the list of
     tags, the tag will have a value of "(null)"
     If the input_dict does not contains pair of keys and values in the list of
     fields, the field will have a value of 0
     """
 
-    formatted_tags = [f"{key}={value}" if value is not None else f"{key}=(null)" for key, value in input_dict.items() if key in input_dict['idb_tags']]
-    formatted_fields = [f"{key}=\"{(value if value is not None and value != '' else '(null)')}\"" if isinstance(value, str) else f"{key}={value}i" if value is not None else f"{key}=0" for key, value in input_dict.items() if key in input_dict['idb_fields']]
+    input_dict = {key: None if value == '' else value for key, value in input_dict.items()}
+    formatted_tags = [f"{key}={value}" if value is not None else f"{key}=\"\"" for key, value in input_dict.items() if key in input_dict['idb_tags']]
+    formatted_fields = [f"{key}={value}u" if value is not None else f"{key}=0u" for key, value in input_dict.items() if key in input_dict['idb_fields']]
 
     formatted_output =','.join([measurement_name] + [','.join(formatted_tags)])
-    formatted_output = formatted_output+' '+' '.join(formatted_fields)+' '+str(input_dict['timestamp'])
+    formatted_output = formatted_output+' '+','.join(formatted_fields)+' '+str(input_dict['timestamp'])
 
     return formatted_output
 
