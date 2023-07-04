@@ -24,8 +24,8 @@ jobs:
     - name: Find Python files in PR
       id: find-files
       run: |
-        git fetch origin master:origin/master
-        files="$(git diff --name-only HEAD origin/master | grep '.py$')"
+        git fetch origin master:refs/remotes/origin/master
+        files="$(git diff --name-only HEAD refs/remotes/origin/master | grep '.py$')"
         echo "files=${files}" >> $GITHUB_ENV
 
     - name: Check Python syntax
