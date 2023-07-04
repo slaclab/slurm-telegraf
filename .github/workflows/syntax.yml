@@ -31,6 +31,7 @@ jobs:
       run: |
         files="${{ steps.find-files.outputs.files }}"
         if [ -n "$files" ]; then
-          echo "$files" | xargs flake8 --show-source --statistics
+          find . -name '*.py' -type f -print0 | xargs -0 flake8 --show-source --statistics
         else
           echo "No Python files found in the PR."
+        fi
