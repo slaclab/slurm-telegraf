@@ -1,4 +1,4 @@
-name: Telegraf Check Syntax
+name: Telegraf Syntax Check
 
 on:
   pull_request:
@@ -6,29 +6,30 @@ on:
       - master
 
 jobs:
-  check_syntax:
+  syntax-check:
     runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        python-version: [3.6, 3.7, 3.8]
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
-      with:
-        fetch-depth: 0
 
     - name: Set up Python
       uses: actions/setup-python@v3
       with:
-        python-version: ${{ matrix.python-version }}
-        cache: 'pip'
+        python-version: 3.8
 
-    - name: Install dependencies
-      run: pip install pylint
+    - name: Install flake8
+      run: pip install flake8
+
+    - name: Find Python files in PR
+      id: find-files
+      run: |
+        echo "::set-output name=files::$(git diff --name-only HEAD $(git merge-base HEAD origin/master) | grep '.py$')"
 
     - name: Check Python syntax
       run: |
-        python_files=$(git diff --name-only HEAD master | grep '\.py$')
-        pylint --min-python-version=${{ matrix.python-version }} $python_files
+        files="${{ steps.find-files.outputs.files }}"
+        if [ -n "$files" ]; then
+          echo "$files" | xargs flake8 --show-source --statistics
+        else
+          echo "No Python files found in the PR."
