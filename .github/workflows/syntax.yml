@@ -24,9 +24,11 @@ jobs:
     - name: Find Python files in PR
       id: find-files
       run: |
-        git remote update
-        files="$(git diff --name-only HEAD origin/master | grep '.py$')"
-        echo "files=${files}"
+        git fetch origin master:refs/remotes/origin/master
+        files=$(git diff --name-only $(git merge-base HEAD refs/remotes/origin/master) | grep '.py$')
+        if [[ -n $files ]]; then
+          echo "FILES=$files" >> $GITHUB_ENV
+        fi
 
     - name: Check Python syntax
       run: |
