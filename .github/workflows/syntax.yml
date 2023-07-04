@@ -26,7 +26,7 @@ jobs:
       run: |
         git remote update
         files="$(git diff --name-only HEAD origin/master | grep '.py$')"
-        echo "files=${files}" >> $GITHUB_ENV
+        echo "files=${files}"
 
     - name: Check Python syntax
       run: |
