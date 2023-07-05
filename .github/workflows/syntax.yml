@@ -22,17 +22,21 @@ jobs:
       run: pip install flake8
 
     - name: Find Python files in PR
-      id: find-files
+      id: findfiles
       run: |
-        git remote update
-        files="$(git diff --name-only HEAD origin/master | grep '.py$')"
-        echo "files=${files}"
+        git fetch origin master
+        files="$(git diff --name-only origin/master -- '*.py')"
+        echo "files=${files}" >> "$GITHUB_ENV"
+
+    - name: Debug
+      run: |
+        echo "${{ env.files }}"
 
     - name: Check Python syntax
       run: |
-        files="${{ steps.find-files.outputs.files }}"
-        if [ -n "$files" ]; then
-          find . -name '*.py' -type f -print0 | xargs -0 flake8 --show-source --statistics
+        files="${{ env.files }}"
+        if [[ -n "$files" ]]; then
+          echo "$files" | xargs flake8 --show-source --statistics
         else
           echo "No Python files found in the PR."
         fi
