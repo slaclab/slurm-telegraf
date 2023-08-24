@@ -141,6 +141,9 @@ def main():
             sub_dict['timestamp'] =  timestamp
             sub_dict['idb_tags'] = idb_tags
             sub_dict['idb_fields'] = idb_fields
+            # lsstsvc1 is the only user interested in mapping name for slurm jobs
+            if sub_dict.get('user_name') != 'lsstsvc1':
+                del sub_dict['name']
             #Add new concept to monitor resources by experiment and by sesion.
             if ":" in sub_dict['account']:
                 facility_repo=sub_dict['account'].split(":")
