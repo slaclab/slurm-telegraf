@@ -95,7 +95,7 @@ def influxDBLineProtocol(measurement_name,input_dict):
     fields, the field will have a value of 0
     """
 
-    input_dict = {key: '_' if '.' in value else (None if value == '' else value) for key, value in input_dict.items()}
+    input_dict = {key: value.replace('.', '_') if isinstance(value, str) and '.' in value else (None if value == '' else value) for key, value in input_dict.items()}
     formatted_tags = [f"{key}={value}" if value is not None else f"{key}=\\\"\\\"" for key, value in input_dict.items() if key in input_dict['idb_tags']]
     formatted_fields = [f"{key}={value}u" if value is not None else f"{key}=0u" for key, value in input_dict.items() if key in input_dict['idb_fields']]
 
