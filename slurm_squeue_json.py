@@ -130,10 +130,10 @@ def main():
                     "job_id", "job_resources", "job_state",
                     "cpus", "node_count", "tasks", "partition", "memory_per_cpu",
                     "priority", "qos", "shared", "start_time", "submit_time",
-                    "user_name","memory_per_node","state_reason"]
+                    "user_name","memory_per_node","state_reason","name"]
         idb_tags = ["account", "job_state", "partition", "priority", "qos",
                     "user_name","facility","repo","long_pending","long_running",
-                    "multi_partition","multi_host", "node","state_reason"]
+                    "multi_partition","multi_host", "node","state_reason","name"]
         idb_fields = ["job_id","cpus","task","memory","cores","memory_per_cpu","memory_per_node"]
 
         for jobs in json_squeue['jobs']:
