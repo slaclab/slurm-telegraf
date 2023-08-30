@@ -34,7 +34,7 @@ def influxDBLineProtocol(measurement_name,input_dict):
     """
 
     input_dict = {key: None if value == '' else value for key, value in input_dict.items()}
-    formatted_tags = [f"{key}={value}" if value is not None else f"{key}=\"\"" for key, value in input_dict.items() if key in input_dict['idb_tags']]
+    formatted_tags = [f"{key}={value}" if value is not None else f"{key}=\\\"\\\"" for key, value in input_dict.items() if key in input_dict['idb_tags']]
     formatted_fields = [f"{key}={value}" if value is not None else f"{key}=0" for key, value in input_dict.items() if key in input_dict['idb_fields']]
 
     formatted_output =','.join([measurement_name] + [','.join(formatted_tags)])
@@ -62,11 +62,12 @@ def main():
 
         attributes2check = ["hostname","state","reason","cpus",
         "alloc_cpus","idle_cpus","real_memory","alloc_memory","free_memory", "weight",
-        "boot_time", "slurmd_start_time"]
+        "boot_time", "slurmd_start_time","cpu_load","next_state_after_reboot"]
 
-        idb_tags = ["hostname", "state", "weight"]
+        idb_tags = ["hostname", "state","weight","reason","next_state_after_reboot"]
         idb_fields = ["alloc_cpus", "idle_cpus", "alloc_memory",
-        "free_memory","boot_time_s","slurmd_start_time_s"]
+        "free_memory","boot_time_s","slurmd_start_time_s","state","reason",
+        "cpu_load"]
 
         for node in json_sinfo['nodes']:
             sub_dict = {key: node[key] for key in attributes2check if key in node}
