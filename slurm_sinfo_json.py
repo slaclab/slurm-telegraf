@@ -35,8 +35,11 @@ def influxDBLineProtocol(measurement_name,input_dict):
 
     input_dict = {key: (None if value == '' else (value.replace(' ', '_') if isinstance(value, str) else value)) for key, value in input_dict.items()}
     formatted_tags = [f"{key}={value}" if value is not None else f"{key}=\\\"\\\"" for key, value in input_dict.items() if key in input_dict['idb_tags']]
-    formatted_fields = [f"{key}={value}" if value is not None else f"{key}=0" for key, value in input_dict.items() if key in input_dict['idb_fields']]
-
+    formatted_fields = [
+    f'{key}="{value}"' if isinstance(value, str) else f'{key}={value}i' if isinstance(value, int) else ''
+    for key, value in input_dict.items()
+    if value is not None and key in input_dict['idb_fields']
+    ]
     formatted_output =','.join([measurement_name] + [','.join(formatted_tags)])
     formatted_output = formatted_output+' '+','.join(formatted_fields)+' '+str(input_dict['timestamp'])
 
