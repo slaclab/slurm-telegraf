@@ -185,13 +185,12 @@ def main():
                             sub_dict['memory']=sub_dict['job_resources']['allocated_nodes'][nodenumber]['memory']
                             sub_dict['cores']=sub_dict['job_resources']['allocated_nodes'][nodenumber]['cpus']
                     else:
-                        dict_influxdb_aux=copy.deepcopy(sub_dict)
-                        dict_influxdb_aux['total_cores']=sub_dict.get('cpus', 0)
-                        dict_influxdb_aux['total_memory']=sub_dict.get('memory_per_cpu', 0)*sub_dict.get('cpus', 0)
-                        dict_influxdb_aux['total_jobs']=1
-                        del dict_influxdb_aux['job_resources']
-                        output_formatted=influxDBLineProtocol("squeue_json",dict_influxdb_aux)
-                        print(output_formatted)
+                        sub_dict['node']=None
+                        try:
+                            sub_dict['memory']=sub_dict.get('memory_per_cpu', 0)
+                        except Exception:
+                            sub_dict['memory']=sub_dict.get('memory_per_node', 0)
+                        sub_dict['cores']=sub_dict.get('cpus', 0)
             else:
                 sub_dict['multi_partition'] = False
                 if len(sub_dict['job_resources'])!=0:
@@ -206,21 +205,25 @@ def main():
                             sub_dict['memory']=sub_dict['job_resources']['allocated_nodes'][nodenumber]['memory']
                             sub_dict['cores']=sub_dict['job_resources']['allocated_nodes'][nodenumber]['cpus']
                 else:
-                    dict_influxdb_aux=copy.deepcopy(sub_dict)
-                    dict_influxdb_aux['total_cores']=sub_dict.get('cpus', 0)
-                    dict_influxdb_aux['total_memory']=sub_dict.get('memory_per_cpu', 0)*sub_dict.get('cpus', 0)
-                    dict_influxdb_aux['total_jobs']=1
-                    del dict_influxdb_aux['job_resources']
-                    output_formatted=influxDBLineProtocol("squeue_json",dict_influxdb_aux)
-                    print(output_formatted)
+                    sub_dict['node']=None
+                    try:
+                        sub_dict['memory']=sub_dict.get('memory_per_cpu', 0)
+                    except Exception:
+                        sub_dict['memory']=sub_dict.get('memory_per_node', 0)
+                    sub_dict['cores']=sub_dict.get('cpus', 0)
 
             user_name = sub_dict['user_name']
             node = sub_dict.get('node', None) # Default to None if 'node' doesn't exist (Job with 'resources':{})
-            cores = sub_dict.get('cores', 0)  # Default to 0 if 'cores' doesn't exist (Job with 'resources':{})
-            memory = sub_dict.get('memory', 0)  # Default to 0 if 'memory' doesn't exist (Job with 'resources':{})
+            try:
+                cores = sub_dict.get('cores', 0)
+            except Exception:
+                cores = sub_dict.get('cpus', 0)
+            try:
+                memory = sub_dict.get('memory', 0)
+            except Exception:
+                memory = sub_dict.get('memory_per_node', 0)
             job_state = sub_dict.get('job_state', None)
             user_node_state = f'{user_name}_{node}_{job_state}' if node is not None else user_name+'_NO_NODE_'+job_state
-
             if user_node_state not in dict_influxdb:
                 dict_influxdb[user_node_state] = copy.deepcopy(sub_dict)
                 del dict_influxdb[user_node_state]['job_resources']
