@@ -33,13 +33,10 @@ def influxDBLineProtocol(measurement_name,input_dict):
     fields, the field will have a value of 0
     """
 
-    input_dict = {key: (None if value == '' else (value.replace(' ', '_') if isinstance(value, str) else value)) for key, value in input_dict.items()}
-    formatted_tags = [f"{key}={value}" if value is not None else f"{key}=\\\"\\\"" for key, value in input_dict.items() if key in input_dict['idb_tags']]
-    formatted_fields = [
-    f'{key}="{value}"' if isinstance(value, str) else f'{key}={value}i' if isinstance(value, int) else ''
-    for key, value in input_dict.items()
-    if value is not None and key in input_dict['idb_fields']
-    ]
+    input_dict = {key: None if value == '' else value for key, value in input_dict.items()}
+    formatted_tags = [f"{key}={value}" if value is not None else f"{key}=\"\"" for key, value in input_dict.items() if key in input_dict['idb_tags']]
+    formatted_fields = [f"{key}={value}" if value is not None else f"{key}=0" for key, value in input_dict.items() if key in input_dict['idb_fields']]
+
     formatted_output =','.join([measurement_name] + [','.join(formatted_tags)])
     formatted_output = formatted_output+' '+','.join(formatted_fields)+' '+str(input_dict['timestamp'])
 
@@ -67,18 +64,15 @@ def main():
         "alloc_cpus","idle_cpus","real_memory","alloc_memory","free_memory", "weight",
         "boot_time", "slurmd_start_time","cpu_load"]
 
-        idb_tags = ["hostname", "state","weight","reason"]
+        idb_tags = ["hostname", "state", "weight"]
         idb_fields = ["alloc_cpus", "idle_cpus", "alloc_memory",
-        "free_memory","boot_time_s","slurmd_start_time_s","state_f","reason_f",
-        "cpu_load"]
+        "free_memory","boot_time_s","slurmd_start_time_s","cpu_load"]
 
         for node in json_sinfo['nodes']:
             sub_dict = {key: node[key] for key in attributes2check if key in node}
             sub_dict['timestamp'] =  timestamp
             sub_dict['idb_tags'] = idb_tags
             sub_dict['idb_fields'] = idb_fields
-            sub_dict['state_f']=sub_dict['state']
-            sub_dict['reason_f']=sub_dict['reason']
             output_formatted=influxDBLineProtocol("sinfo_json",sub_dict)
             print(output_formatted)
 
