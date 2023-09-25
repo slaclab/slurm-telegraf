@@ -171,7 +171,7 @@ def main():
             else:
                 sub_dict['long_running'] = False
             #print('original_dict:{}'.format(sub_dict))
-            if sub_dict['start_time'] == 0:
+            if sub_dict['start_time'] == 0 :
                 sub_dict['start_time'] = timestampsec
 
             if "," in sub_dict['partition']:
