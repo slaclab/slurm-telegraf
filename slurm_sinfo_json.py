@@ -5,6 +5,7 @@ import time
 import sys
 import traceback
 import datetime
+import re
 
 """
     All the parameters from sinfo --json seems to be easy to understand. The
@@ -56,19 +57,22 @@ def find_reservation_by_node(data, node):
 
 def expand_node_list(node_string):
     nodes = []
-    if '[' in node_string:
-        base_name, ranges = node_string.split('[')
-        base_name = base_name.strip()
-        ranges = ranges.rstrip(']').split(',')
+    node_groups = re.split(r',(?![^\[]*\])', node_string)
 
-        for item in ranges:
-            if '-' in item:
-                start, end = item.split('-')
-                nodes.extend([f"{base_name}{str(i).zfill(3)}" for i in range(int(start), int(end)+1)])
-            else:
-                nodes.append(f"{base_name}{item.zfill(3)}")
-    else:
-        nodes.append(node_string)
+    for node_group in node_groups:
+        if '[' in node_group:
+            match = re.match(r'^(.*?)\[(.*?)\]$', node_group)
+            if match:
+                base_name, ranges = match.groups()
+                ranges = ranges.split(',')
+                for item in ranges:
+                    if '-' in item:
+                        start, end = item.split('-')
+                        nodes.extend([f"{base_name}{str(i).zfill(3)}" for i in range(int(start), int(end) + 1)])
+                    else:
+                        nodes.append(f"{base_name}{item.zfill(3)}")
+        else:
+            nodes.append(node_group)
     return nodes
 
 def parse_reservation_info(output):
@@ -95,6 +99,7 @@ def parse_reservation_info(output):
                 elif key == "Accounts":
                     attributes["Accounts"] = value.split(",") if value != "(null)" else None
         reservation_dict[attributes["Name"]] = attributes
+
     return reservation_dict
 
 def get_reservation_info():
@@ -188,9 +193,9 @@ def main():
             else:
                 sub_dict['state_flags'] = None
                 sub_dict['state_flags_f'] = None
-            if sub_dict['state_flags_f'] == 'RESERVED':
+            if sub_dict['state_flags_f'] in ["RESERVED","MAINTENANCE","DRAIN"]:
                 sub_dict['reservation_name']=find_reservation_by_node(reservations,sub_dict['hostname'])
-                sub_dict['reservation_name_f']=find_reservation_by_node(reservations,sub_dict['hostname'])
+                sub_dict['reservation_name_f']=sub_dict['reservation_name']
             else:
                 sub_dict['reservation_name'] = None
                 sub_dict['reservation_name_f'] =  None
