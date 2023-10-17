@@ -137,13 +137,13 @@ def main():
                     "user_name","memory_per_node","state_reason","accrue_time",
                     "eligible_time","end_time","start_time","submit_time",
                     "suspend_time","preempt_time","pre_sus_time"]
-        idb_tags = ["account", "job_state", "partition", "priority", "qos",
+        idb_tags = ["account", "job_state", "partition", "qos",
                     "user_name","facility","repo","long_pending","long_running",
                     "multi_partition","multi_host", "node","state_reason"]
-        idb_fields = ["job_id","cpus","task","memory","cores","memory_per_cpu",
-                    "memory_per_node","accrue_time","eligible_time","end_time",
-                    "start_time","submit_time","suspend_time","preempt_time",
-                    "pre_sus_time","total_cores","total_memory","total_jobs"]
+        idb_fields = ["job_id","cpus","task","memory","cores","accrue_time",
+                    "eligible_time","end_time","start_time","submit_time",
+                    "suspend_time","preempt_time","pre_sus_time","total_cores",
+                    "total_memory","total_jobs","priority","comp_startime"]
 
         for jobs in json_squeue['jobs']:
             sub_dict = {key: jobs[key] for key in attributes2check if key in jobs}
@@ -174,6 +174,8 @@ def main():
             if sub_dict['start_time'] == 0 :
                 sub_dict['start_time'] = timestampsec
 
+            sub_dict['comp_startime'] = sub_dict['start_time'] - sub_dict['submit_time']
+
             if "," in sub_dict['partition']:
                 sub_dict['multi_partition'] = True
                 partitions = sub_dict['partition'].split(",")
@@ -190,16 +192,21 @@ def main():
                             sub_dict['node']=nodes[int(nodenumber)]
                             sub_dict['memory']=sub_dict['job_resources']['allocated_nodes'][nodenumber]['memory']
                             sub_dict['cores']=sub_dict['job_resources']['allocated_nodes'][nodenumber]['cpus']
+                            sub_dict['memory_per_cpu']=sub_dict['memory']
                             dict_influxdb=copy.deepcopy(sub_dict)
                             del dict_influxdb['job_resources']
                             output_formatted=influxDBLineProtocol("squeue_json",dict_influxdb)
                             print(output_formatted)
                     else:
                         sub_dict['node']=None
-                        try:
-                            sub_dict['memory']=sub_dict.get('memory_per_cpu', 0)
-                        except Exception:
-                            sub_dict['memory']=sub_dict.get('memory_per_node', 0)
+                        if isinstance(sub_dict.get('memory_per_cpu'), int):
+                            sub_dict['memory']=sub_dict['memory_per_cpu']
+                        elif isinstance(sub_dict.get('memory_per_node'), int):
+                            sub_dict['memory']=sub_dict['memory_per_node']
+                            sub_dict['memory_per_cpu']=sub_dict['memory']
+                        else:
+                            sub_dict['memory']=0
+                            sub_dict['memory_per_cpu']=0
                         sub_dict['cores']=sub_dict.get('cpus', 0)
                         dict_influxdb=copy.deepcopy(sub_dict)
                         del dict_influxdb['job_resources']
@@ -218,58 +225,31 @@ def main():
                             sub_dict['node']=nodes[int(nodenumber)]
                             sub_dict['memory']=sub_dict['job_resources']['allocated_nodes'][nodenumber]['memory']
                             sub_dict['cores']=sub_dict['job_resources']['allocated_nodes'][nodenumber]['cpus']
+                            if isinstance(sub_dict.get('memory_per_cpu'), int):
+                                sub_dict['memory']=sub_dict['memory_per_cpu']
+                            elif isinstance(sub_dict.get('memory_per_node'), int):
+                                sub_dict['memory']=sub_dict['memory_per_node']
+                                sub_dict['memory_per_cpu']=sub_dict['memory']
+                            else:
+                                sub_dict['memory']=0
+                                sub_dict['memory_per_cpu']=0
                             dict_influxdb=copy.deepcopy(sub_dict)
                             del dict_influxdb['job_resources']
                             output_formatted=influxDBLineProtocol("squeue_json",dict_influxdb)
                             print(output_formatted)
                 else:
                     sub_dict['node']=None
-                    try:
-                        sub_dict['memory']=sub_dict.get('memory_per_cpu', 0)
-                    except Exception:
-                        sub_dict['memory']=sub_dict.get('memory_per_node', 0)
+                    if isinstance(sub_dict.get('memory_per_cpu'), int):
+                        sub_dict['memory']=sub_dict['memory_per_cpu']
+                    elif isinstance(sub_dict.get('memory_per_node'), int):
+                        sub_dict['memory']=sub_dict['memory_per_node']
+                    else:
+                        sub_dict['memory']=0
                     sub_dict['cores']=sub_dict.get('cpus', 0)
                     dict_influxdb=copy.deepcopy(sub_dict)
                     del dict_influxdb['job_resources']
                     output_formatted=influxDBLineProtocol("squeue_json",dict_influxdb)
                     print(output_formatted)
-
-
-
-            user_name = sub_dict['user_name']
-            node = sub_dict.get('node', None) # Default to None if 'node' doesn't exist (Job with 'resources':{})
-            try:
-                cores = sub_dict.get('cores', 0)
-            except Exception:
-                cores = sub_dict.get('cpus', 0)
-            try:
-                memory = sub_dict.get('memory', 0)
-            except Exception:
-                memory = sub_dict.get('memory_per_node', 0)
-            job_state = sub_dict.get('job_state', None)
-            user_node_state = f'{user_name}_{node}_{job_state}' if node is not None else user_name+'_NO_NODE_'+job_state
-            if user_node_state not in dict_influxdb_summ:
-                dict_influxdb_summ[user_node_state] = copy.deepcopy(sub_dict)
-                del dict_influxdb_summ[user_node_state]['job_resources']
-
-                dict_influxdb_summ[user_node_state]['total_cores'] = cores
-                dict_influxdb_summ[user_node_state]['total_memory'] = memory
-                dict_influxdb_summ[user_node_state]['total_jobs'] = 1
-            else:
-                dict_influxdb_summ[user_node_state]['total_cores'] += cores
-                dict_influxdb_summ[user_node_state]['total_memory'] += memory
-                dict_influxdb_summ[user_node_state]['total_jobs'] += 1
-
-        keys_to_delete_summ = {"long_pending","long_running","multi_partition",
-                                "node","accrue_time","job_id","start_time",
-                                "submit_time","eligible_time","end_time","suspend_time",
-                                "preempt_time","pre_sus_time"}
-
-        for user_node_state in list(dict_influxdb_summ.keys()):  # Convert to list to avoid 'dictionary size changed during iteration' error
-            dict_influxdb_summ[user_node_state] = {k: v for k, v in dict_influxdb_summ[user_node_state].items() if k not in keys_to_delete_summ}
-            output_formatted = influxDBLineProtocol("squeue_json_summary", dict_influxdb_summ[user_node_state])
-            print(output_formatted)
-
 
     except Exception:
         traceback.print_exc()
