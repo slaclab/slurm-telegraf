@@ -143,7 +143,7 @@ def main():
         idb_fields = ["job_id","cpus","task","memory","cores","accrue_time",
                     "eligible_time","end_time","start_time","submit_time",
                     "suspend_time","preempt_time","pre_sus_time","total_cores",
-                    "total_memory","total_jobs","priority","comp_startime"]
+                    "total_memory","total_jobs","priority","comp_startime","comp_endtime"]
 
         for jobs in json_squeue['jobs']:
             sub_dict = {key: jobs[key] for key in attributes2check if key in jobs}
@@ -171,10 +171,20 @@ def main():
             else:
                 sub_dict['long_running'] = False
             #print('original_dict:{}'.format(sub_dict))
-            if sub_dict['start_time'] == 0 :
+            if sub_dict['start_time'] == 0 : # Condition for pending jobs
                 sub_dict['start_time'] = timestampsec
 
             sub_dict['comp_startime'] = sub_dict['start_time'] - sub_dict['submit_time']
+            sub_dict['comp_endtime'] = sub_dict['end_time'] - sub_dict['start_time']
+
+            #Reporting only once the comp_startime. int number in this conditional
+            #represents 2x the time in secons each time this code is running.
+            if sub_dict['job_state'] != "PENDING" and (sub_dict['start_time'] + 60 < timestampsec):
+                del(sub_dict['comp_startime'])
+
+            #Reporting only once the end_time of a job.
+            if sub_dict['job_state'] in ["RUNNING","PENDING"] or (sub_dict['job_state'] not in ["RUNNING","PENDING"] and (sub_dict['end_time'] + 60 < timestampsec)):
+                del(sub_dict['comp_endtime'])
 
             if "," in sub_dict['partition']:
                 sub_dict['multi_partition'] = True
