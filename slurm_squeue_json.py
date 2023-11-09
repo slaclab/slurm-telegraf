@@ -147,6 +147,8 @@ def main():
 
         for jobs in json_squeue['jobs']:
             sub_dict = {key: jobs[key] for key in attributes2check if key in jobs}
+            if '^' in sub_dict['account']:
+                sub_dict['account'] = sub_dict['account'].split('^')[0]
             sub_dict['timestamp'] =  timestamp
             sub_dict['idb_tags'] = idb_tags
             sub_dict['idb_fields'] = idb_fields

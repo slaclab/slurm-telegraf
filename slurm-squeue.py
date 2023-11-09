@@ -8,22 +8,22 @@ running = {}
 other = {}
 
 for line in sys.stdin:
- 
   #logging.error(f"\n> {line}")
   this = {}
 
   try:
-    out = line.strip().split()
+    out = line.strip().split('|')
 
     this['jobid'] = out.pop(0)
     this['state'] = out.pop(0)
     this['user'] = out.pop(0)
     this['partition'] = out.pop(0).replace(',', '_').replace('\ ', '')
     this['account'] = out.pop(0)
+    if '^' in this['account']:
+        this['account'] = this['account'].split('^')[0]
     this['qos'] = out.pop(0)
 
     this['tasks'] = out.pop(0)
- 
     tres = out.pop(0)
 
     this['reason'] = str(' '.join(out)).replace(' ','\ ')
@@ -94,4 +94,3 @@ for (state, reason, user, partition, account, qos), data in other.items():
     values = [ f"{k}={data[k]}i" for k in data.keys() ]
     this_reason = reason.replace('\ ', '')
     print( f"squeue,user={user},partition={partition},account={account},qos={qos},state={state},reason={this_reason} {','.join(values)}" )
-
