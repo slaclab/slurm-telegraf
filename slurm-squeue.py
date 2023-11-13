@@ -22,7 +22,9 @@ for line in sys.stdin:
     this['qos'] = out.pop(0)
     if '^' in this['qos']:
         this['qos'] = this['qos'].split('^')[1]
-        #this will give an exception if ^ is the last element of the string.
+        if '@' in this['qos']:
+            this['qos'] = this['qos'].split('@')[0]
+    #this will give an exception if ^ or @ is the last element of the string.
 
     this['tasks'] = out.pop(0)
     tres = out.pop(0)
