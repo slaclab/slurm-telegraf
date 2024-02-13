@@ -2,16 +2,13 @@
 
 import sys
 import logging
-import re
 
 # squeue -rh -o '%g %u %P %16b %T %C %D %R'
 assoc_tree_path = []
 
 
 for line in sys.stdin:
- 
-   #logging.info(f"> {line}")
-
+  # logging.info(f"> {line}")
   fields = line.split('|')
 
   if len(fields) == 11:
@@ -36,13 +33,13 @@ for line in sys.stdin:
       assoc_tree_path = assoc_tree_path[:level + 1]
 
     if level_fs:
-      if level_fs is 'inf':
+      if level_fs == 'inf':
         level_fs = sys.maxint
       level_fs = float(level_fs)
       #print( "sshare level_fs=%s share=%f" % ('.'.join(assoc_tree_path), level_fs  ))
   else:
     if level_fs:
-      if level_fs is 'inf':
+      if level_fs == 'inf':
         level_fs = sys.maxint
       level_fs = float(level_fs)
       #print( "sshare level_fs=%s.%s share=%f" % ('.'.join(assoc_tree_path), user, level_fs ) )
