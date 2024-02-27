@@ -149,7 +149,9 @@ def main():
             sub_dict = {key: jobs[key] for key in attributes2check if key in jobs}
             if '^' in sub_dict['qos']:
                 sub_dict['qos'] = sub_dict['qos'].split('^')[1]
-                #this will give an exception if ^ is the last element of the string.
+                if '@' in sub_dict['qos']:
+                    sub_dict['qos'] = sub_dict['qos'].split('@')[0]
+            #this will give an exception if ^ or @ is the last element of the string.
             sub_dict['timestamp'] =  timestamp
             sub_dict['idb_tags'] = idb_tags
             sub_dict['idb_fields'] = idb_fields
